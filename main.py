@@ -1,8 +1,15 @@
+# Packages import
 from fastapi import FastAPI
-from pydantic import BaseModel
 from typing import Optional
 
+# Application imports
+from api.v1.books import books_router
+from schemas.posts import Post
+
 app = FastAPI()
+
+# Include routers
+app.include_router(books_router, prefix="/books", tags=["books"])
 
 
 @app.get("/")
@@ -20,13 +27,12 @@ async def greet_query(name: Optional[str] = None) -> dict:
     return {"message": f"Hello {name}"}
 
 
-class Book(BaseModel):
-    title: str
-    author: str
-
-
-@app.post("/books")
-async def add_book(book: Book) -> dict:
-    return {
-        "message": f"Book '{book.title}' whose author is '{book.author}' is added to library",
-    }
+@app.post("/create_post")
+async def create_post(post: Post) -> dict:
+    try:
+        return {
+            "message": post.dict(),
+        }
+    except Exception as e:
+        print(f"Error while creating post: {e}")
+        return {"error": e}
