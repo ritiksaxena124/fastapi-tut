@@ -1,5 +1,5 @@
 # Packages import
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, status, HTTPException
 from typing import Optional
 from uuid import uuid4
 
@@ -39,7 +39,7 @@ async def greet_query(name: Optional[str] = None) -> dict:
     return {"message": f"Hello {name}"}
 
 
-@app.post("/create_post")
+@app.post("/create_post", status_code=status.HTTP_201_CREATED)
 async def create_post(post: Post) -> dict:
     try:
         new_post = post.dict()
@@ -62,12 +62,19 @@ async def get_posts():
 
 
 @app.get("/posts/{post_id}")
-async def get_post(post_id: str):
+async def get_post(post_id: str, response: Response):
     try:
         for post in posts:
             if post["id"] == post_id:
                 return {"data": post}
-        return {"message": f"Post with id: {post_id} doesn't exists"}
+
+        # response.status_code = status.HTTP_404_NOT_FOUND
+        # return {"message": f"Post with id: {post_id} doesn't exists"}
+        # OR
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Post with id: {post_id} doesn't exists",
+        )
     except Exception as e:
         print(f"Error in getting post by id: {e}")
         return {"error": e}
